@@ -230,8 +230,8 @@
   <audio id="remoteAudio" autoplay playsinline></audio>
 
   <script>
-    const API = 'https://api.esimoa.com';
-    const AUTH_BASE = 'https://www.esimoa.com';
+    const API = '/proxy';
+    const AUTH_BASE = '/proxy';
     let accessToken = localStorage.getItem('esimoa_token') || '';
     let allRates = [];
     let micStream = null;
@@ -265,26 +265,15 @@
       btn.textContent = 'جاري الدخول...';
 
       try {
-        const csrfRes = await fetch(AUTH_BASE + '/api/auth/csrf', { credentials: 'include' });
-        const csrfData = await csrfRes.json();
-        const formData = new URLSearchParams();
-        formData.append('csrfToken', csrfData.csrfToken);
-        formData.append('email', email);
-        formData.append('password', password);
-        formData.append('callbackUrl', AUTH_BASE + '/en/call');
-        formData.append('json', 'true');
-
-        const loginRes = await fetch(AUTH_BASE + '/api/auth/callback/credentials', {
+        const loginRes = await fetch('/proxy/auth/login', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: formData.toString(),
-          credentials: 'include'
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
         });
-        if (!loginRes.ok) throw new Error('فشل الاتصال بالسيرفر');
-
-        const sessionRes = await fetch(AUTH_BASE + '/api/auth/session', { credentials: 'include' });
-        const session = await sessionRes.json();
-        if (!session.accessToken) throw new Error('بيانات الدخول غير صحيحة');
+        const session = await loginRes.json();
+        if (!loginRes.ok || !session.accessToken) {
+          throw new Error(session.error || 'بيانات الدخول غير صحيحة');
+        }
 
         accessToken = session.accessToken;
         localStorage.setItem('esimoa_token', accessToken);
@@ -366,7 +355,7 @@
 
     // ===== GRAPHQL =====
     async function graphql(query) {
-      const res = await fetch(API + '/graphql', {
+      const res = await fetch('/proxy/graphql', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
