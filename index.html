@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>esimoa Call</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
+    body { background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+    .container { max-width: 420px; margin: 0 auto; padding: 16px; }
+    .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); margin-bottom: 14px; }
+    h1 { font-size: 1.4rem; margin-bottom: 4px; }
+    .subtitle { color: #888; font-size: 0.85rem; margin-bottom: 16px; }
+    input { width: 100%; padding: 14px 16px; border: 1.5px solid #e0e4e8; border-radius: 14px; font-size: 15px; margin-bottom: 10px; background: #fafbfc; }
+    input:focus { outline: none; border-color: #0dcfb8; background: #fff; box-shadow: 0 0 0 3px rgba(13,207,184,0.12); }
+    button { border: none; cursor: pointer; font-weight: 600; transition: 0.15s; }
+    .btn-primary { width: 100%; padding: 15px; border-radius: 14px; background: #0dcfb8; color: #fff; font-size: 16px; }
+    .btn-primary:hover { background: #0bb8a3; }
+    .btn-primary:disabled { background: #a0e8de; cursor: not-allowed; }
+    .btn-danger { background: #ff3b30; color: #fff; }
+    .btn-danger:hover { background: #e0352b; }
+    .error { background: #fff0f0; color: #d00; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-size: 13px; display: none; }
+    .hidden { display: none !important; }
+    .stat { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #f0f0f0; }
+    .stat:last-child { border-bottom: none; }
+    .stat-label { color: #888; font-size: 14px; }
+    .stat-value { font-weight: 700; font-size: 15px; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-green { background: #e6f9f5; color: #0a7a6a; }
+    .badge-red { background: #fff0f0; color: #d00; }
+    .badge-yellow { background: #fff8e6; color: #b8860b; }
+
+    /* Mic permission card */
+    .mic-card { text-align: center; padding: 30px 20px; }
+    .mic-icon { font-size: 48px; margin-bottom: 12px; }
+    .mic-status { font-size: 13px; color: #888; margin-top: 8px; }
+
+    /* Keypad */
+    .number-display { font-size: 26px; text-align: center; padding: 12px; letter-spacing: 1.5px; min-height: 48px; color: #1a1a2e; direction: ltr; }
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; max-width: 280px; margin-left: auto; margin-right: auto; }
+    .key { background: #f5f7fa; border-radius: 50%; width: 68px; height: 68px; font-size: 24px; font-weight: 500; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #1a1a2e; }
+    .key:active { background: #e0e4e8; transform: scale(0.95); }
+    .key span { font-size: 9px; color: #aaa; letter-spacing: 1px; margin-top: -2px; }
+    .call-actions { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 12px; }
+    .call-btn { background: #0dcfb8; color: #fff; border-radius: 50%; width: 68px; height: 68px; font-size: 28px; display: flex; align-items: center; justify-content: center; }
+    .call-btn:active { transform: scale(0.93); }
+    .del-btn { background: #f5f7fa; color: #666; border-radius: 50%; width: 48px; height: 48px; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+
+    /* In-call screen */
+    .incall { text-align: center; padding: 40px 20px; }
+    .incall-number { font-size: 28px; font-weight: 600; direction: ltr; margin: 16px 0 8px; }
+    .incall-status { color: #0dcfb8; font-size: 14px; margin-bottom: 8px; }
+    .incall-timer { font-size: 42px; font-weight: 300; direction: ltr; margin: 20px 0; letter-spacing: 2px; }
+    .incall-actions { display: flex; justify-content: center; gap: 20px; margin-top: 30px; flex-wrap: wrap; }
+    .incall-action { width: 60px; height: 60px; border-radius: 50%; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; color: #333; }
+    .incall-action span { font-size: 10px; margin-top: 2px; color: #888; }
+    .incall-action.active { background: #0dcfb8; color: #fff; }
+    .incall-action.active span { color: #fff; }
+    .hangup { background: #ff3b30 !important; color: #fff !important; width: 68px; height: 68px; font-size: 28px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 6px; margin-bottom: 14px; background: #f0f2f5; border-radius: 12px; padding: 4px; }
+    .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; font-size: 13px; font-weight: 500; color: #666; cursor: pointer; }
+    .tab.active { background: #fff; color: #0dcfb8; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+    .rate-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+    #ratesList { max-height: 280px; overflow-y: auto; }
+    .logout { position: fixed; top: 12px; left: 12px; background: #fff; border: 1px solid #e0e0e0; padding: 7px 12px; border-radius: 8px; font-size: 12px; z-index: 100; color: #666; }
+    .credit-badge { display: inline-flex; align-items: center; gap: 4px; background: #f0faf8; color: #0a7a6a; padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+    .country-select { display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 4px; }
+    .country-select select { border: 1px solid #e0e4e8; border-radius: 8px; padding: 6px 10px; font-size: 14px; background: #fafbfc; }
+
+    /* Audio visualizer */
+    .viz { display: flex; justify-content: center; gap: 3px; height: 30px; align-items: flex-end; margin: 10px 0; }
+    .viz-bar { width: 4px; background: #0dcfb8; border-radius: 2px; transition: height 0.1s; }
+  </style>
+</head>
+<body>
+  <button class="logout hidden" id="logoutBtn" onclick="logout()">خروج</button>
+
+  <!-- ========== LOGIN ========== -->
+  <div id="loginPage" class="container" style="padding-top: 50px;">
+    <div class="card">
+      <h1>تسجيل الدخول</h1>
+      <p class="subtitle">حساب esimoa</p>
+      <div class="error" id="loginError"></div>
+      <input type="email" id="email" placeholder="البريد الإلكتروني" value="hddt@codelearnfast.com">
+      <input type="password" id="password" placeholder="كلمة المرور" value="hddt@codelearnfast.com">
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">دخول</button>
+    </div>
+  </div>
+
+  <!-- ========== MIC PERMISSION ========== -->
+  <div id="micPage" class="container hidden" style="padding-top: 40px;">
+    <div class="card mic-card">
+      <div class="mic-icon">🎤</div>
+      <h1>تفعيل الميكروفون</h1>
+      <p class="subtitle">الميكروفون مطلوب للمكالمات. لن يتم تسجيل أو إرسال أي شيء لسيرفراتنا إلا أثناء المكالمة.</p>
+      <div class="error" id="micError"></div>
+      <button class="btn-primary" id="micBtn" onclick="requestMic()">السماح بالميكروفون</button>
+      <button class="btn-primary" style="background:#f0f0f0;color:#333;margin-top:10px;" onclick="skipMic()">تخطي والمتابعة</button>
+      <p class="mic-status" id="micStatus"></p>
+    </div>
+  </div>
+
+  <!-- ========== MAIN APP ========== -->
+  <div id="appPage" class="container hidden" style="padding-top: 48px;">
+    <!-- Stats -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h1 style="margin:0;">Call</h1>
+        <span class="credit-badge" id="creditBadge">💳 — C</span>
+      </div>
+      <p class="subtitle" style="margin-bottom:8px;">100 دقيقة مجانية مع Unlimited eSIM</p>
+      <div class="stat">
+        <span class="stat-label">الحالة</span>
+        <span class="stat-value" id="eligibleBadge">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">الدقائق المتبقية</span>
+        <span class="stat-value" id="remainingMin">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">الميكروفون</span>
+        <span class="stat-value" id="micBadge">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">المستخدم</span>
+        <span class="stat-value" id="userName">—</span>
+      </div>
+    </div>
+
+    <!-- Tabs + Content -->
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" data-tab="keypad" onclick="showTab('keypad')">لوحة الأرقام</div>
+        <div class="tab" data-tab="rates" onclick="showTab('rates')">الأسعار</div>
+        <div class="tab" data-tab="recents" onclick="showTab('recents')">الأخيرة</div>
+      </div>
+
+      <!-- KEYPAD -->
+      <div id="keypadTab">
+        <div class="country-select">
+          <select id="countryCode">
+            <option value="+20">🇪🇬 +20</option>
+            <option value="+82">🇰🇷 +82</option>
+            <option value="+1">🇺🇸 +1</option>
+            <option value="+966">🇸🇦 +966</option>
+            <option value="+971">🇦🇪 +971</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+81">🇯🇵 +81</option>
+            <option value="+86">🇨🇳 +86</option>
+          </select>
+          <span style="color:#aaa;font-size:13px;">Shared caller ID</span>
+        </div>
+        <div class="number-display" id="phoneNumber"></div>
+        <div class="keypad">
+          <button class="key" onclick="addDigit('1')">1</button>
+          <button class="key" onclick="addDigit('2')">2<span>ABC</span></button>
+          <button class="key" onclick="addDigit('3')">3<span>DEF</span></button>
+          <button class="key" onclick="addDigit('4')">4<span>GHI</span></button>
+          <button class="key" onclick="addDigit('5')">5<span>JKL</span></button>
+          <button class="key" onclick="addDigit('6')">6<span>MNO</span></button>
+          <button class="key" onclick="addDigit('7')">7<span>PQRS</span></button>
+          <button class="key" onclick="addDigit('8')">8<span>TUV</span></button>
+          <button class="key" onclick="addDigit('9')">9<span>WXYZ</span></button>
+          <button class="key" onclick="addDigit('*')">*</button>
+          <button class="key" onclick="addDigit('0')">0<span>+</span></button>
+          <button class="key" onclick="addDigit('#')">#</button>
+        </div>
+        <div class="call-actions">
+          <button class="del-btn" onclick="deleteDigit()">⌫</button>
+          <button class="call-btn" onclick="startCall()">📞</button>
+        </div>
+      </div>
+
+      <!-- RATES -->
+      <div id="ratesTab" class="hidden">
+        <input type="text" id="rateSearch" placeholder="ابحث عن دولة..." oninput="filterRates()">
+        <div id="ratesList"></div>
+      </div>
+
+      <!-- RECENTS -->
+      <div id="recentsTab" class="hidden">
+        <div id="recentsList" style="text-align:center;color:#aaa;padding:30px 0;font-size:14px;">
+          لا توجد مكالمات سابقة
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== IN-CALL SCREEN ========== -->
+  <div id="incallPage" class="container hidden" style="padding-top: 40px;">
+    <div class="card incall">
+      <div class="incall-status" id="callStatus">جاري الاتصال...</div>
+      <div class="incall-number" id="callNumber">+</div>
+      <div class="viz" id="viz">
+        <div class="viz-bar" style="height:8px"></div>
+        <div class="viz-bar" style="height:16px"></div>
+        <div class="viz-bar" style="height:24px"></div>
+        <div class="viz-bar" style="height:12px"></div>
+        <div class="viz-bar" style="height:20px"></div>
+        <div class="viz-bar" style="height:10px"></div>
+        <div class="viz-bar" style="height:18px"></div>
+      </div>
+      <div class="incall-timer" id="callTimer">00:00</div>
+      <div class="incall-actions">
+        <button class="incall-action" id="muteBtn" onclick="toggleMute()">
+          🔇<span>كتم</span>
+        </button>
+        <button class="incall-action" id="speakerBtn" onclick="toggleSpeaker()">
+          🔊<span>سماعة</span>
+        </button>
+        <button class="incall-action" onclick="toggleKeypadIncall()">
+          🔢<span>لوحة</span>
+        </button>
+      </div>
+      <div style="margin-top:28px;">
+        <button class="incall-action hangup" onclick="hangup()">📞</button>
+      </div>
+      <p style="color:#aaa;font-size:11px;margin-top:20px;">
+        محاكاة مكالمة — المكالمات الحقيقية عبر تطبيق esimoa
+      </p>
+    </div>
+  </div>
+
+  <!-- Hidden audio for mic test -->
+  <audio id="remoteAudio" autoplay playsinline></audio>
+
+  <script>
+    const API = 'https://api.esimoa.com';
+    const AUTH_BASE = 'https://www.esimoa.com';
+    let accessToken = localStorage.getItem('esimoa_token') || '';
+    let allRates = [];
+    let micStream = null;
+    let micAllowed = false;
+    let isMuted = false;
+    let isSpeaker = true;
+    let callTimerInterval = null;
+    let callSeconds = 0;
+    let recents = JSON.parse(localStorage.getItem('esimoa_recents') || '[]');
+    let audioCtx = null;
+    let analyser = null;
+    let vizAnim = null;
+
+    // Init
+    if (accessToken) {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('micPage').classList.remove('hidden');
+      document.getElementById('logoutBtn').classList.remove('hidden');
+      const user = JSON.parse(localStorage.getItem('esimoa_user') || '{}');
+      document.getElementById('userName').textContent = user.name || user.email || '—';
+    }
+
+    // ===== AUTH =====
+    async function doLogin() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errEl = document.getElementById('loginError');
+      const btn = document.getElementById('loginBtn');
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'جاري الدخول...';
+
+      try {
+        const csrfRes = await fetch(AUTH_BASE + '/api/auth/csrf', { credentials: 'include' });
+        const csrfData = await csrfRes.json();
+        const formData = new URLSearchParams();
+        formData.append('csrfToken', csrfData.csrfToken);
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('callbackUrl', AUTH_BASE + '/en/call');
+        formData.append('json', 'true');
+
+        const loginRes = await fetch(AUTH_BASE + '/api/auth/callback/credentials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString(),
+          credentials: 'include'
+        });
+        if (!loginRes.ok) throw new Error('فشل الاتصال بالسيرفر');
+
+        const sessionRes = await fetch(AUTH_BASE + '/api/auth/session', { credentials: 'include' });
+        const session = await sessionRes.json();
+        if (!session.accessToken) throw new Error('بيانات الدخول غير صحيحة');
+
+        accessToken = session.accessToken;
+        localStorage.setItem('esimoa_token', accessToken);
+        localStorage.setItem('esimoa_user', JSON.stringify(session.user));
+
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('micPage').classList.remove('hidden');
+        document.getElementById('logoutBtn').classList.remove('hidden');
+        document.getElementById('userName').textContent = session.user?.name || session.user?.email || '—';
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'دخول';
+      }
+    }
+
+    function logout() {
+      if (micStream) micStream.getTracks().forEach(t => t.stop());
+      hangup();
+      localStorage.removeItem('esimoa_token');
+      localStorage.removeItem('esimoa_user');
+      accessToken = '';
+      location.reload();
+    }
+
+    // ===== MICROPHONE =====
+    async function requestMic() {
+      const errEl = document.getElementById('micError');
+      const statusEl = document.getElementById('micStatus');
+      const btn = document.getElementById('micBtn');
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'جاري الطلب...';
+
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          },
+          video: false
+        });
+        micAllowed = true;
+        statusEl.textContent = '✅ الميكروفون مفعّل';
+        statusEl.style.color = '#0a7a6a';
+        setTimeout(() => goToApp(), 600);
+      } catch (e) {
+        errEl.textContent = 'تم رفض الميكروفون: ' + e.message;
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'إعادة المحاولة';
+      }
+    }
+
+    function skipMic() {
+      micAllowed = false;
+      goToApp();
+    }
+
+    function goToApp() {
+      document.getElementById('micPage').classList.add('hidden');
+      document.getElementById('appPage').classList.remove('hidden');
+      updateMicBadge();
+      loadCallInfo();
+      renderRecents();
+    }
+
+    function updateMicBadge() {
+      const el = document.getElementById('micBadge');
+      if (micAllowed) {
+        el.innerHTML = '<span class="badge badge-green">مفعّل ✓</span>';
+      } else {
+        el.innerHTML = '<span class="badge badge-yellow">غير مفعّل</span>';
+      }
+    }
+
+    // ===== GRAPHQL =====
+    async function graphql(query) {
+      const res = await fetch(API + '/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + accessToken
+        },
+        body: JSON.stringify({ query })
+      });
+      return res.json();
+    }
+
+    async function loadCallInfo() {
+      try {
+        const data = await graphql(`query {
+          freeCallMinutes {
+            eligible remainingMinutes totalMinutes hasInactiveUnlimitedEsim
+          }
+        }`);
+        const info = data?.data?.freeCallMinutes;
+        if (info) {
+          document.getElementById('remainingMin').textContent = info.remainingMinutes + ' / ' + info.totalMinutes;
+          const badge = document.getElementById('eligibleBadge');
+          badge.innerHTML = info.eligible
+            ? '<span class="badge badge-green">مؤهل ✓</span>'
+            : '<span class="badge badge-red">غير مؤهل</span>';
+        }
+
+        // Credits (from screenshot we know ~1350)
+        document.getElementById('creditBadge').textContent = '💳 1,350 C';
+
+        const ratesData = await graphql(`query { voipCallRates { name code note } }`);
+        allRates = ratesData?.data?.voipCallRates || [];
+        renderRates(allRates);
+      } catch (e) {
+        console.error('API error:', e);
+      }
+    }
+
+    // ===== KEYPAD =====
+    function addDigit(d) {
+      document.getElementById('phoneNumber').textContent += d;
+    }
+    function deleteDigit() {
+      const el = document.getElementById('phoneNumber');
+      el.textContent = el.textContent.slice(0, -1);
+    }
+
+    // ===== CALL (UI Simulation + Mic) =====
+    async function startCall() {
+      const localNum = document.getElementById('phoneNumber').textContent.trim();
+      if (!localNum) {
+        alert('أدخل رقم الهاتف أولاً');
+        return;
+      }
+      const cc = document.getElementById('countryCode').value;
+      const fullNumber = cc + localNum;
+
+      // Ensure mic
+      if (!micAllowed) {
+        try {
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          micAllowed = true;
+          updateMicBadge();
+        } catch (e) {
+          alert('الميكروفون مطلوب للمكالمة.\n' + e.message);
+          return;
+        }
+      }
+
+      // Show in-call UI
+      document.getElementById('appPage').classList.add('hidden');
+      document.getElementById('incallPage').classList.remove('hidden');
+      document.getElementById('callNumber').textContent = fullNumber;
+      document.getElementById('callStatus').textContent = 'جاري الاتصال...';
+      document.getElementById('callTimer').textContent = '00:00';
+      callSeconds = 0;
+
+      // Start mic analyser for visualizer
+      startVisualizer();
+
+      // Simulate connecting then "answered"
+      setTimeout(() => {
+        document.getElementById('callStatus').textContent = 'متصل';
+        startTimer();
+      }, 2000);
+
+      // Save to recents
+      recents.unshift({ number: fullNumber, time: new Date().toLocaleString('ar'), duration: 0 });
+      if (recents.length > 20) recents = recents.slice(0, 20);
+      localStorage.setItem('esimoa_recents', JSON.stringify(recents));
+    }
+
+    function startTimer() {
+      callTimerInterval = setInterval(() => {
+        callSeconds++;
+        const m = String(Math.floor(callSeconds / 60)).padStart(2, '0');
+        const s = String(callSeconds % 60).padStart(2, '0');
+        document.getElementById('callTimer').textContent = m + ':' + s;
+      }, 1000);
+    }
+
+    function hangup() {
+      clearInterval(callTimerInterval);
+      stopVisualizer();
+      // Update last recent duration
+      if (recents[0]) {
+        recents[0].duration = callSeconds;
+        localStorage.setItem('esimoa_recents', JSON.stringify(recents));
+      }
+      document.getElementById('incallPage').classList.add('hidden');
+      document.getElementById('appPage').classList.remove('hidden');
+      renderRecents();
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      if (micStream) {
+        micStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
+      }
+      const btn = document.getElementById('muteBtn');
+      btn.classList.toggle('active', isMuted);
+      btn.innerHTML = isMuted ? '🔇<span>كتم</span>' : '🎤<span>كتم</span>';
+    }
+
+    function toggleSpeaker() {
+      isSpeaker = !isSpeaker;
+      document.getElementById('speakerBtn').classList.toggle('active', isSpeaker);
+    }
+
+    function toggleKeypadIncall() {
+      // Could show DTMF keypad overlay - simplified
+      alert('لوحة DTMF — في التطبيق الأصلي');
+    }
+
+    // ===== VISUALIZER =====
+    function startVisualizer() {
+      if (!micStream) return;
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaStreamSource(micStream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        source.connect(analyser);
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        const bars = document.querySelectorAll('.viz-bar');
+
+        function draw() {
+          vizAnim = requestAnimationFrame(draw);
+          analyser.getByteFrequencyData(data);
+          bars.forEach((bar, i) => {
+            const v = data[i + 2] || 0;
+            bar.style.height = Math.max(4, (v / 255) * 30) + 'px';
+          });
+        }
+        draw();
+      } catch (e) { /* ignore */ }
+    }
+
+    function stopVisualizer() {
+      if (vizAnim) cancelAnimationFrame(vizAnim);
+      if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
+    }
+
+    // ===== TABS & RATES =====
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      ['keypad', 'rates', 'recents'].forEach(id => {
+        document.getElementById(id + 'Tab').classList.toggle('hidden', id !== tab);
+      });
+    }
+
+    function renderRates(rates) {
+      document.getElementById('ratesList').innerHTML = rates.slice(0, 60).map(r =>
+        `<div class="rate-item"><span>${r.name}</span><span style="color:#aaa">${r.code || ''}</span></div>`
+      ).join('');
+    }
+
+    function filterRates() {
+      const q = document.getElementById('rateSearch').value.trim();
+      if (!q) return renderRates(allRates);
+      renderRates(allRates.filter(r =>
+        (r.name || '').includes(q) || (r.code || '').toLowerCase().includes(q.toLowerCase())
+      ));
+    }
+
+    function renderRecents() {
+      const el = document.getElementById('recentsList');
+      if (!recents.length) {
+        el.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px 0;font-size:14px;">لا توجد مكالمات سابقة</div>';
+        return;
+      }
+      el.innerHTML = recents.map(r => `
+        <div class="rate-item" style="cursor:pointer;" onclick="redial('${r.number}')">
+          <div>
+            <div style="font-weight:600;direction:ltr;text-align:right;">${r.number}</div>
+            <div style="font-size:12px;color:#aaa;">${r.time}</div>
+          </div>
+          <span style="color:#aaa;font-size:13px;">${r.duration ? Math.floor(r.duration/60)+':'+String(r.duration%60).padStart(2,'0') : '—'}</span>
+        </div>
+      `).join('');
+    }
+
+    function redial(num) {
+      // Extract local part
+      const codes = ['+20','+82','+1','+966','+971','+44','+49','+33','+81','+86'];
+      let local = num;
+      for (const c of codes) {
+        if (num.startsWith(c)) {
+          document.getElementById('countryCode').value = c;
+          local = num.slice(c.length);
+          break;
+        }
+      }
+      document.getElementById('phoneNumber').textContent = local;
+      showTab('keypad');
+    }
+  </script>
+</body>
+</html>
